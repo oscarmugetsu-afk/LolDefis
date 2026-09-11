@@ -8,10 +8,12 @@ const IDENTITY_KEY = "lol-challenge-identity";
 const state = {
   champions: [],
   progress: {},
+  priorPlayed: {},
   players: { p1: "Joueur 1", p2: "Joueur 2" },
   filters: { search: "", role: "ALL", status: "ALL", sort: "AZ" },
   storageMode: "loading",
   saveChampion: null,
+  savePriorPlayed: null,
   savePlayers: null
 };
 
@@ -47,6 +49,7 @@ function readLocalState() {
     if (!raw) return;
     const saved = JSON.parse(raw);
     state.progress = saved.progress || {};
+    state.priorPlayed = saved.priorPlayed || {};
     state.players = { ...state.players, ...(saved.players || {}) };
   } catch (error) {
     console.warn("Impossible de lire le stockage local", error);
@@ -56,6 +59,7 @@ function readLocalState() {
 function persistLocal() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     progress: state.progress,
+    priorPlayed: state.priorPlayed,
     players: state.players
   }));
 }
@@ -83,6 +87,11 @@ async function setupStorage() {
       state.progress[championId][player] = checked;
       persistLocal();
     };
+    state.savePriorPlayed = async (championId, player, checked) => {
+      state.priorPlayed[championId] ||= {};
+      state.priorPlayed[championId][player] = checked;
+      persistLocal();
+    };
     state.savePlayers = async () => persistLocal();
     setStorageStatus("local", "Mode local");
     return;
@@ -108,13 +117,20 @@ async function setupStorage() {
 
     await setDoc(challengeRef, {
       players: state.players,
-      progress: state.progress
+      progress: state.progress,
+      priorPlayed: state.priorPlayed
     }, { merge: true });
 
     state.saveChampion = async (championId, player, checked) => {
       // Les IDs Riot n'ont pas de point, donc ce chemin Firestore est sûr.
       await updateDoc(challengeRef, {
         [`progress.${championId}.${player}`]: checked
+      });
+    };
+
+    state.savePriorPlayed = async (championId, player, checked) => {
+      await updateDoc(challengeRef, {
+        [`priorPlayed.${championId}.${player}`]: checked
       });
     };
 
@@ -127,6 +143,7 @@ async function setupStorage() {
       if (!data) return;
       state.players = { ...state.players, ...(data.players || {}) };
       state.progress = data.progress || {};
+      state.priorPlayed = data.priorPlayed || {};
       renderAll();
     }, error => {
       console.error(error);
@@ -139,6 +156,11 @@ async function setupStorage() {
     state.saveChampion = async (championId, player, checked) => {
       state.progress[championId] ||= {};
       state.progress[championId][player] = checked;
+      persistLocal();
+    };
+    state.savePriorPlayed = async (championId, player, checked) => {
+      state.priorPlayed[championId] ||= {};
+      state.priorPlayed[championId][player] = checked;
       persistLocal();
     };
     state.savePlayers = async () => persistLocal();
@@ -190,6 +212,13 @@ function progressFor(id) {
   };
 }
 
+function priorPlayedFor(id) {
+  return {
+    p1: Boolean(state.priorPlayed[id]?.p1),
+    p2: Boolean(state.priorPlayed[id]?.p2)
+  };
+}
+
 function filteredChampions() {
   const needle = state.filters.search.trim().toLocaleLowerCase("fr");
 
@@ -206,6 +235,12 @@ function filteredChampions() {
       case "P2_MISSING": return !p.p2;
       case "ONE_DONE": return completedCount === 1;
       case "BOTH": return completedCount === 2;
+      case "NEVER_P1": return !priorPlayedFor(champion.id).p1;
+      case "NEVER_P2": return !priorPlayedFor(champion.id).p2;
+      case "NEVER_BOTH": {
+        const prior = priorPlayedFor(champion.id);
+        return !prior.p1 && !prior.p2;
+      }
       default: return true;
     }
   });
@@ -219,6 +254,13 @@ function filteredChampions() {
     if (state.filters.sort === "ZA") return b.name.localeCompare(a.name, "fr");
     if (state.filters.sort === "PROGRESS_ASC") return aScore - bScore || a.name.localeCompare(b.name, "fr");
     if (state.filters.sort === "PROGRESS_DESC") return bScore - aScore || a.name.localeCompare(b.name, "fr");
+    if (state.filters.sort === "NEVER_FIRST") {
+      const aPrior = priorPlayedFor(a.id);
+      const bPrior = priorPlayedFor(b.id);
+      const aPriorScore = Number(aPrior.p1) + Number(aPrior.p2);
+      const bPriorScore = Number(bPrior.p1) + Number(bPrior.p2);
+      return aPriorScore - bPriorScore || a.name.localeCompare(b.name, "fr");
+    }
     return a.name.localeCompare(b.name, "fr");
   });
 }
@@ -264,6 +306,14 @@ function renderGrid() {
     p2Button.classList.toggle("is-checked", p.p2);
     $(".player-check__name", p1Button).textContent = state.players.p1;
     $(".player-check__name", p2Button).textContent = state.players.p2;
+
+    const prior = priorPlayedFor(champion.id);
+    const priorP1 = $('.prior-check[data-player="p1"]', node);
+    const priorP2 = $('.prior-check[data-player="p2"]', node);
+    priorP1.classList.toggle("is-checked", prior.p1);
+    priorP2.classList.toggle("is-checked", prior.p2);
+    $(".prior-check__name", priorP1).textContent = state.players.p1;
+    $(".prior-check__name", priorP2).textContent = state.players.p2;
 
     fragment.appendChild(node);
   });
@@ -337,6 +387,22 @@ async function toggleChampion(championId, player, button) {
   }
 }
 
+async function togglePriorPlayed(championId, player) {
+  const previous = Boolean(state.priorPlayed[championId]?.[player]);
+  state.priorPlayed[championId] ||= {};
+  state.priorPlayed[championId][player] = !previous;
+  renderAll();
+
+  try {
+    await state.savePriorPlayed?.(championId, player, !previous);
+  } catch (error) {
+    console.error(error);
+    state.priorPlayed[championId][player] = previous;
+    renderAll();
+    setStorageStatus("error", "Écriture impossible");
+  }
+}
+
 function resetFilters() {
   state.filters = { search: "", role: "ALL", status: "ALL", sort: "AZ" };
   els.search.value = "";
@@ -371,9 +437,17 @@ function bindEvents() {
   });
 
   els.grid.addEventListener("click", e => {
+    const card = e.target.closest(".champion-card");
+    if (!card) return;
+
+    const priorButton = e.target.closest(".prior-check");
+    if (priorButton) {
+      togglePriorPlayed(card.dataset.id, priorButton.dataset.player);
+      return;
+    }
+
     const button = e.target.closest(".player-check");
     if (!button) return;
-    const card = e.target.closest(".champion-card");
     toggleChampion(card.dataset.id, button.dataset.player, button);
   });
 

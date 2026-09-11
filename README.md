@@ -182,3 +182,27 @@ Pas de Node.js, npm ou framework.
 Tu peux même lancer le site localement avec un petit serveur HTTP, par exemple depuis VS Code avec Live Server.
 
 Évite simplement d'ouvrir `index.html` directement en `file://`, car les modules JavaScript ES sont mieux servis via HTTP.
+
+
+---
+
+# Statut "Joué avant le défi"
+
+Chaque joueur peut maintenant indiquer qu'il avait déjà joué un champion avant le début du défi.
+
+Ce statut est indépendant de la victoire du défi :
+
+- **Joué avant le défi** = historique personnel.
+- **Case principale cochée** = victoire obtenue pendant le défi.
+
+Tu peux utiliser le filtre :
+
+- `Jamais joué avant — Joueur 1`
+- `Jamais joué avant — Joueur 2`
+- `Jamais joué avant — les deux`
+
+et le tri :
+
+- `Jamais joués avant d'abord`
+
+Cela permet de commencer par les champions totalement nouveaux, puis de refaire progressivement les autres.

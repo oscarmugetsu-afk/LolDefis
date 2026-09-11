@@ -446,3 +446,77 @@ select { padding: 0 34px 0 11px; font-size: 12px; }
   .hero__copy { font-size: 13px; }
   .champion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+.champion-card__prior {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, .10);
+}
+.champion-card__prior-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #68778c;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.champion-card__prior-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.prior-check {
+  min-width: 0;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 1px solid rgba(148, 163, 184, .12);
+  border-radius: 7px;
+  color: #64748b;
+  background: rgba(9, 15, 24, .55);
+  font-size: 9px;
+}
+.prior-check:hover {
+  color: #aab6c8;
+  border-color: rgba(148, 163, 184, .26);
+}
+.prior-check__dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #536174;
+  border-radius: 50%;
+}
+.prior-check__name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.prior-check--one.is-checked {
+  color: #9fdce5;
+  border-color: rgba(53, 199, 216, .22);
+  background: rgba(53, 199, 216, .06);
+}
+.prior-check--one.is-checked .prior-check__dot {
+  border-color: var(--cyan);
+  background: var(--cyan);
+  box-shadow: 0 0 8px rgba(53, 199, 216, .5);
+}
+.prior-check--two.is-checked {
+  color: #c8baff;
+  border-color: rgba(157, 124, 255, .22);
+  background: rgba(157, 124, 255, .06);
+}
+.prior-check--two.is-checked .prior-check__dot {
+  border-color: var(--violet);
+  background: var(--violet);
+  box-shadow: 0 0 8px rgba(157, 124, 255, .5);
+}
+
+@media (max-width: 700px) {
+  .champion-card__prior-buttons { grid-template-columns: 1fr; }
+}

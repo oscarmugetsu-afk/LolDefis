@@ -98,6 +98,9 @@
             <option value="P2_MISSING">À faire — Joueur 2</option>
             <option value="ONE_DONE">Validé par un seul</option>
             <option value="BOTH">Terminés à deux</option>
+            <option value="NEVER_P1">Jamais joué avant — Joueur 1</option>
+            <option value="NEVER_P2">Jamais joué avant — Joueur 2</option>
+            <option value="NEVER_BOTH">Jamais joué avant — les deux</option>
           </select>
 
           <select id="sortSelect" aria-label="Trier les champions">
@@ -105,6 +108,7 @@
             <option value="ZA">Nom Z → A</option>
             <option value="PROGRESS_ASC">À faire d'abord</option>
             <option value="PROGRESS_DESC">Terminés d'abord</option>
+            <option value="NEVER_FIRST">Jamais joués avant d'abord</option>
           </select>
         </div>
       </div>
@@ -179,14 +183,27 @@
           <span class="champion-card__score"></span>
         </div>
         <div class="champion-card__players">
-          <button class="player-check player-check--one" data-player="p1" type="button">
+          <button class="player-check player-check--one" data-player="p1" type="button" title="Victoire pendant le défi">
             <span class="player-check__box">✓</span>
             <span class="player-check__name"></span>
           </button>
-          <button class="player-check player-check--two" data-player="p2" type="button">
+          <button class="player-check player-check--two" data-player="p2" type="button" title="Victoire pendant le défi">
             <span class="player-check__box">✓</span>
             <span class="player-check__name"></span>
           </button>
+        </div>
+        <div class="champion-card__prior">
+          <span class="champion-card__prior-label">Joué avant le défi</span>
+          <div class="champion-card__prior-buttons">
+            <button class="prior-check prior-check--one" data-player="p1" type="button" title="Déjà joué avant le défi">
+              <span class="prior-check__dot"></span>
+              <span class="prior-check__name"></span>
+            </button>
+            <button class="prior-check prior-check--two" data-player="p2" type="button" title="Déjà joué avant le défi">
+              <span class="prior-check__dot"></span>
+              <span class="prior-check__name"></span>
+            </button>
+          </div>
         </div>
       </div>
     </article>
