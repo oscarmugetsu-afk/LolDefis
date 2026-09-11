@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="Défi League of Legends : gagner une partie avec tous les champions." />
+  <title>All Champions Challenge</title>
+  <link rel="preconnect" href="https://ddragon.leagueoflegends.com">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="background-glow background-glow--one"></div>
+  <div class="background-glow background-glow--two"></div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Accueil">
+      <span class="brand__mark">L</span>
+      <span>
+        <strong>ALL CHAMPIONS</strong>
+        <small>CHALLENGE</small>
+      </span>
+    </a>
+
+    <div class="topbar__actions">
+      <div id="syncBadge" class="sync-badge sync-badge--loading">
+        <span class="sync-badge__dot"></span>
+        <span id="syncText">Initialisation…</span>
+      </div>
+      <button id="settingsButton" class="icon-button" type="button" aria-label="Paramètres" title="Paramètres">⚙</button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">OBJECTIF : LES MAÎTRISER TOUS</p>
+        <h1>Un champion. Une victoire.<br><span>Jusqu'au dernier.</span></h1>
+        <p class="hero__copy">
+          Cochez un champion uniquement après une victoire. La progression est suivie séparément pour les deux joueurs.
+        </p>
+      </div>
+
+      <div class="hero__counter">
+        <span id="globalCompleted">0</span>
+        <small>/ <span id="championTotal">0</span><br>terminés à deux</small>
+      </div>
+    </section>
+
+    <section class="progress-grid" aria-label="Progression des joueurs">
+      <article class="progress-card">
+        <div class="progress-card__head">
+          <div>
+            <span class="player-dot player-dot--one"></span>
+            <strong id="player1Name">Joueur 1</strong>
+          </div>
+          <span><b id="player1Count">0</b> / <span class="totalMirror">0</span></span>
+        </div>
+        <div class="progress-track"><div id="player1Bar" class="progress-fill progress-fill--one"></div></div>
+        <div class="progress-card__foot"><span id="player1Percent">0%</span><span id="player1Remaining">0 restants</span></div>
+      </article>
+
+      <article class="progress-card">
+        <div class="progress-card__head">
+          <div>
+            <span class="player-dot player-dot--two"></span>
+            <strong id="player2Name">Joueur 2</strong>
+          </div>
+          <span><b id="player2Count">0</b> / <span class="totalMirror">0</span></span>
+        </div>
+        <div class="progress-track"><div id="player2Bar" class="progress-fill progress-fill--two"></div></div>
+        <div class="progress-card__foot"><span id="player2Percent">0%</span><span id="player2Remaining">0 restants</span></div>
+      </article>
+    </section>
+
+    <section class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" autocomplete="off" placeholder="Rechercher un champion…" aria-label="Rechercher un champion" />
+        <kbd>/</kbd>
+      </div>
+
+      <div class="toolbar-row">
+        <div id="roleFilters" class="filter-group" aria-label="Filtrer par rôle">
+          <button class="filter-button is-active" data-role="ALL" type="button">Tous</button>
+          <button class="filter-button" data-role="TOP" type="button">Top</button>
+          <button class="filter-button" data-role="JUNGLE" type="button">Jungle</button>
+          <button class="filter-button" data-role="MID" type="button">Mid</button>
+          <button class="filter-button" data-role="ADC" type="button">ADC</button>
+          <button class="filter-button" data-role="SUPPORT" type="button">Support</button>
+        </div>
+
+        <div class="select-group">
+          <select id="statusFilter" aria-label="Filtrer la progression">
+            <option value="ALL">Tous les états</option>
+            <option value="NONE">À faire par les deux</option>
+            <option value="P1_MISSING">À faire — Joueur 1</option>
+            <option value="P2_MISSING">À faire — Joueur 2</option>
+            <option value="ONE_DONE">Validé par un seul</option>
+            <option value="BOTH">Terminés à deux</option>
+          </select>
+
+          <select id="sortSelect" aria-label="Trier les champions">
+            <option value="AZ">Nom A → Z</option>
+            <option value="ZA">Nom Z → A</option>
+            <option value="PROGRESS_ASC">À faire d'abord</option>
+            <option value="PROGRESS_DESC">Terminés d'abord</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="results-line">
+        <span><b id="visibleCount">0</b> champions affichés</span>
+        <button id="resetFilters" class="text-button" type="button">Réinitialiser les filtres</button>
+      </div>
+    </section>
+
+    <section id="championGrid" class="champion-grid" aria-live="polite"></section>
+
+    <div id="emptyState" class="empty-state" hidden>
+      <div>?</div>
+      <h2>Aucun champion trouvé</h2>
+      <p>Essaie de modifier la recherche ou les filtres.</p>
+      <button id="emptyReset" class="primary-button" type="button">Tout afficher</button>
+    </div>
+  </main>
+
+  <dialog id="settingsDialog" class="modal">
+    <form method="dialog" class="modal__panel" id="settingsForm">
+      <div class="modal__head">
+        <div>
+          <p class="eyebrow">PARAMÈTRES</p>
+          <h2>Votre défi</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Fermer" type="submit">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Nom du joueur 1</span>
+          <input id="player1Input" maxlength="20" placeholder="Joueur 1" />
+        </label>
+        <label>
+          <span>Nom du joueur 2</span>
+          <input id="player2Input" maxlength="20" placeholder="Joueur 2" />
+        </label>
+      </div>
+
+      <div class="identity-block">
+        <span>Qui utilises-tu sur cet appareil ?</span>
+        <div class="identity-options">
+          <label><input type="radio" name="identity" value="p1"><span id="identityP1">Joueur 1</span></label>
+          <label><input type="radio" name="identity" value="p2"><span id="identityP2">Joueur 2</span></label>
+        </div>
+        <small>Le choix est mémorisé uniquement sur cet appareil. Tu peux quand même cocher les deux joueurs sur chaque carte.</small>
+      </div>
+
+      <div class="modal__notice" id="storageNotice">
+        Le site fonctionne actuellement en stockage local. Configure Firebase pour synchroniser la progression entre vos deux appareils.
+      </div>
+
+      <div class="modal__actions">
+        <button class="secondary-button" value="cancel" type="submit">Annuler</button>
+        <button id="saveSettings" class="primary-button" value="default" type="button">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="championCardTemplate">
+    <article class="champion-card">
+      <div class="champion-card__image-wrap">
+        <img class="champion-card__image" alt="" loading="lazy" />
+        <div class="champion-card__roles"></div>
+        <div class="champion-card__complete">✓ TERMINÉ</div>
+      </div>
+      <div class="champion-card__body">
+        <div class="champion-card__title-row">
+          <h2 class="champion-card__name"></h2>
+          <span class="champion-card__score"></span>
+        </div>
+        <div class="champion-card__players">
+          <button class="player-check player-check--one" data-player="p1" type="button">
+            <span class="player-check__box">✓</span>
+            <span class="player-check__name"></span>
+          </button>
+          <button class="player-check player-check--two" data-player="p2" type="button">
+            <span class="player-check__box">✓</span>
+            <span class="player-check__name"></span>
+          </button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
